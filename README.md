@@ -1,15 +1,15 @@
-# Azure Landing Zone - Foundation 🚀
+# Azure Landing Zone - Foundation
 
 This repository contains the Bicep code for deploying a fundamental **Azure Landing Zone (ALZ)** hierarchy. 
 
 ## 🏗️ Architecture
-We are implementing a "Contoso" root structure with the following Management Groups:
+Implementing a "Contoso" root structure with the following Management Groups:
 - **Platform**: For shared services (Identity, Management, Connectivity).
 - **Workload**: For business-specific applications.
 - **Sandbox**: For testing and experimentation.
 
 ## ⚖️ Governance & Policy
-We have implemented automated guardrails to ensure cost control and compliance:
+Implemented automated guardrails to ensure cost control and compliance:
 - **Allowed Regions**: Restricted to US and Canada to maintain data residency.
 - **VM Size Restrictions**: Blocks expensive VM SKUs to optimize costs.
 
