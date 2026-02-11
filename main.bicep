@@ -45,38 +45,8 @@ resource sandboxGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
   }
 }
 
-
-resource blockExpensiveVMs 'Microsoft.Authorization/policyAssignments@2022-06-01' = {
-  name: 'block-expensive-vms'
-  scope: rootGroup // This applies the rule to your whole organization!
-  properties: {
-    policyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/cccc23c7-8427-4f53-ad87-de616a28273f'
-    parameters: {
-      listOfAllowedSKUs: {
-        value: [
-          'Standard_B1s'
-          'Standard_B2s'
-        ]
-      }
-    }
-  }
+module orgGovernance './policy.bicep' = {
+  name: 'org-governance-deployment'
+  scope: rootGroup // This tells the module: "Run your code inside this group"
 }
-
-resource allowRegions 'Microsoft.Authorization/policyAssignments@2022-06-01' = {
-  name: 'allow-toronto-and-us-regions'
-  scope: rootGroup // Applying it to the root so everything follows this rule
-  properties: {
-    displayName: 'Restrict deployment to Canada and East US'
-    policyDefinitionId: '/providers/Microsoft.Authorization/policyDefinitions/e56962a6-4747-49cd-b67b-bf8b01975c4c'
-    parameters: {
-      listOfAllowedLocations: {
-        value: [
-          'canadacentral' // This is the Toronto data center! 🏙️
-          'eastus'        // Your preferred US region
-        ]
-      }
-    }
-  }
-}
-
 
