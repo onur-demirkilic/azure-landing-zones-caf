@@ -4,8 +4,8 @@ param location string = 'eastus'
 param rgName string = 'contoso-hub-rg'
 
 // 1. Create the Resource Group using local module
-module hubRG 'modules/resourceGroup.bicep' = {
-	name: 'hub-rg-deployment'   //Deployment Label that I will see in Azure Portal.
+module hubRG '../../modules/resourceGroup.bicep' = {
+	name: 'hub-rg-deployment'   //Deployment Label that I see in Azure Portal.
 	params: {
 		rgName: rgName
 		location: location
@@ -33,4 +33,6 @@ module hubVnet 'br/public:avm/res/network/virtual-network:0.5.1' = {
 	}
 }
 
-
+output hubVnetId string 	= hubVnet.outputs.resourceId
+output hubVnetName string = hubVnet.outputs.name
+output hubRGName string 	= hubRG.outputs.name
