@@ -17,7 +17,7 @@ Implemented automated guardrails to ensure cost control and compliance:
 Ensure you are authenticated via Azure CLI, then run:
 ```bash
 az deployment tenant create --location EastUS --template-file main.bicep
-```
+ ```
 
 ## 🤖 CI/CD & Automation
 Implemented a robust "Quality Gate" using GitHub Actions to ensure infrastructure reliability.
