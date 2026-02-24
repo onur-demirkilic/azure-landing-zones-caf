@@ -61,19 +61,16 @@ module hub './layers/connectivity/connectivity.bicep' = {
   }
 }
 
-
 // This calls spoke Module.
 module spoke './layers/workloads/spoke.bicep' = {
   name: 'spoke-deployment'
   scope: subscription(BasicSubscriptionId) 
   params: {
-    location: location
-    //below line says, I want to look at the data hub(above) module sent back to me after it finished running.
-    hubVnetId: hub.outputs.hubVnetId 
+    location: location 
   }
 } 
 
-// This block calls vnetPeering module
+// This calls vnetPeering module
 module vnetPeering './modules/vnetPeering.bicep' = {
   name: 'vnet-peering-deployment'
   scope: subscription(BasicSubscriptionId) 
@@ -85,4 +82,27 @@ module vnetPeering './modules/vnetPeering.bicep' = {
     spokeVnetId: spoke.outputs.spokeVnetId
     spokeResourceGroupName: spoke.outputs.spokeRGName
   }
+}
+
+//Creating Management/Logging Resource Group
+module loggingRg 'modules/resourceGroup.bicep'= {
+  name:'logging-rg-deployment'
+  scope: subscription(BasicSubscriptionId)
+  params: {
+    rgName: 'cloudcorp-logging-rg'
+    location: location
+  }
+}
+
+//this calls Logging module to create logAnalyticsWorkspace
+module logging './modules/logging.bicep' = {
+  scope: resourceGroup(BasicSubscriptionId, 'cloudcorp-logging-rg')
+  name: 'log-analytics-workspace-deployment'
+  params: {
+    name: 'law-cloudcorp-001'
+    retentionInDays: 31 //this overwrites the default 30 that defined in the module itself
+  }
+  dependsOn: [
+    loggingRg
+  ]
 }

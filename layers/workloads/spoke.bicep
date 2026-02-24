@@ -1,7 +1,6 @@
 targetScope = 'subscription'
 
 param location string
-param hubVnetId string
 
 // Create a RG for the Workload
 module spokeRG '../../modules/resourceGroup.bicep' = {
