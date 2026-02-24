@@ -1,9 +1,9 @@
 targetScope = 'tenant'
 param location string = 'eastus'
-param BasicSubscriptionId string = 'e2408b3a-9f44-486c-899a-7f9c862f07f3'
+param BasicSubscriptionId string
 
 resource rootGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
-  name: 'contoso-root' // This must be a unique ID
+  name: 'CloudCorp-Root' // This must be a unique ID
   properties: {
     displayName: 'My Organization Root'
   }
@@ -12,7 +12,7 @@ resource rootGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
 // Creating 3 main groups under rootGroup: Platform, Workloads, and Sandbox
 
 resource platformGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
-  name: 'contoso-platform'
+  name: 'CloudCorp-Platform'
   properties: {
     displayName: 'Platform'
     details: {
@@ -24,7 +24,7 @@ resource platformGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
 }
 
 resource workloadGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
-  name: 'contoso-workload'
+  name: 'CloudCorp-Workload'
   properties: {
     displayName: 'Workload'
     details: {
@@ -36,7 +36,7 @@ resource workloadGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
 }
 
 resource sandboxGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
-  name: 'contoso-sandbox'
+  name: 'CloudCorp-Sandbox'
   properties: {
     displayName: 'Sandbox'
     details: {
@@ -52,22 +52,54 @@ module orgGovernance './policy.bicep' = {
   scope: rootGroup // This tells the module: "Run your code inside this group"
 }
 
+// Creating hubRG
+module hubRG 'modules/resourceGroup.bicep' = {
+  name:'hub-rg-deployment'
+  scope: subscription(BasicSubscriptionId)
+  params: {
+    rgName:'cloudcorp-hub-rg'
+    location: location
+  }
+}
+
+
 // This calls hub Module.
 module hub './layers/connectivity/connectivity.bicep' = {
-  name: 'hub-deployment'
-  scope: subscription(BasicSubscriptionId) 
+  name: 'hub-deployment' // Deployment log name
+  scope: resourceGroup(BasicSubscriptionId, 'cloudcorp-hub-rg')
   params: {
-    location: location
+    name: 'hub-vnet-deployment'       // Deployment log name for the internal AVM module
+    vnetName: 'vnet-hub-001'          // The actual name of the VNet resource 
+    subnetName: 'AzureBastionSubnet'  // subnetName
+  }
+  dependsOn: [
+    hubRG
+  ] 
+  }
+
+
+// Creating spokeRG, which will be used for Workloads
+module spokeRG 'modules/resourceGroup.bicep' = {
+  name: 'spoke-rg-deployment'
+  scope: subscription(BasicSubscriptionId)
+  params: {
+    rgName: 'cloudcorp-workload-rg'
+    location:location
   }
 }
 
 // This calls spoke Module.
 module spoke './layers/workloads/spoke.bicep' = {
   name: 'spoke-deployment'
-  scope: subscription(BasicSubscriptionId) 
+  scope: resourceGroup(BasicSubscriptionId, 'cloudcorp-workload-rg') 
   params: {
-    location: location 
+    name: 'spoke-vnet-deployment'
+    vnetName: 'vnet-spoke-001'
+    subnetName: 'snet-workload-001'
   }
+  dependsOn: [
+    spokeRG // This ensures the RG exists first.
+  ]
 } 
 
 // This calls vnetPeering module
@@ -77,14 +109,14 @@ module vnetPeering './modules/vnetPeering.bicep' = {
   params: {
     hubVnetName: hub.outputs.hubVnetName
     hubVnetId: hub.outputs.hubVnetId
-    hubResourceGroupName: hub.outputs.hubRGName
+    hubResourceGroupName: hubRG.outputs.name
     spokeVnetName: spoke.outputs.spokeVnetName
     spokeVnetId: spoke.outputs.spokeVnetId
-    spokeResourceGroupName: spoke.outputs.spokeRGName
+    spokeResourceGroupName: spokeRG.outputs.name
   }
 }
 
-//Creating Management/Logging Resource Group
+// Creating Management/Logging Resource Group
 module loggingRg 'modules/resourceGroup.bicep'= {
   name:'logging-rg-deployment'
   scope: subscription(BasicSubscriptionId)
@@ -94,13 +126,13 @@ module loggingRg 'modules/resourceGroup.bicep'= {
   }
 }
 
-//this calls Logging module to create logAnalyticsWorkspace
+// This calls Logging module to create logAnalyticsWorkspace
 module logging './modules/logging.bicep' = {
   scope: resourceGroup(BasicSubscriptionId, 'cloudcorp-logging-rg')
   name: 'log-analytics-workspace-deployment'
   params: {
     name: 'law-cloudcorp-001'
-    retentionInDays: 31 //this overwrites the default 30 that defined in the module itself
+    retentionInDays: 31 // This overwrites the default 30 that defined in the module itself
   }
   dependsOn: [
     loggingRg
