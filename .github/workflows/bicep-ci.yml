@@ -24,11 +24,11 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Bicep Lint
-        run: az bicep build --file layers/connectivity/connectivity.bicep
+        run: az bicep build --file ./main.bicep
 
       - name: Azure Pre-flight Validation
         run:  |
           az deployment tenant validate \
             --location eastus \
-            --template-file main.bicep \
+            --template-file ./main.bicep \
             --parameters BasicSubscriptionId=${{ secrets.AZURE_SUBSCRIPTION_ID }}
