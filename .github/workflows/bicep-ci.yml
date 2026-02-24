@@ -28,7 +28,7 @@ jobs:
 
       - name: Azure Pre-flight Validation
         run:  |
-          az deployment sub validate \
+          az deployment tenant validate \
             --location eastus \
             --template-file main.bicep \
             --parameters BasicSubscriptionId=${{ secrets.AZURE_SUBSCRIPTION_ID }}
