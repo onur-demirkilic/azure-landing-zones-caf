@@ -22,6 +22,8 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          # Allows the login to succeed for Tenant-level operations
+          allow-no-subscriptions: true
 
       - name: Bicep Lint
         run: az bicep build --file ./main.bicep
@@ -31,4 +33,5 @@ jobs:
           az deployment tenant validate \
             --location eastus \
             --template-file ./main.bicep \
-            --parameters BasicSubscriptionId=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            --parameters BasicSubscriptionId=${{ secrets.AZURE_SUBSCRIPTION_ID }} \
+                         managementGroupId=${{ secrets.AZURE_MGMT_GROUP_ID }}

@@ -1,12 +1,11 @@
 targetScope = 'tenant'
 param location string = 'eastus'
 param BasicSubscriptionId string
+param managementGroupId string 
 
-resource rootGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
-  name: 'CloudCorp-Root' // This must be a unique ID
-  properties: {
-    displayName: 'My Organization Root'
-  }
+
+resource rootGroup 'Microsoft.Management/managementGroups@2021-04-01' existing = {
+  name: managementGroupId 
 }
 
 // Creating 3 main groups under rootGroup: Platform, Workloads, and Sandbox
