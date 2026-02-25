@@ -8,5 +8,5 @@ resource rg 'Microsoft.Resources/resourcegroups@2023-07-01' = {
 	location: location
 }
 
-// "outout" the name so the networking module knows where to go
+// "output" the name so we can refer it
 output name string = rg.name

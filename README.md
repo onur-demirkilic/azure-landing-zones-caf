@@ -1,6 +1,6 @@
-# Azure Landing Zone - Foundation
+# Azure Landing Zone - Foundation ☁️
 
-This repository contains the Bicep code for deploying a fundamental **Azure Landing Zone (ALZ)** hierarchy. 
+This repository contains the Bicep code for deploying a fundamental **Azure Landing Zone (ALZ)** hierarchy using a **centralized orchestrator** model.
 
 ## 🏗️ Architecture
 Implementing a "Contoso" root structure with the following Management Groups:
@@ -12,11 +12,15 @@ Implementing a "Contoso" root structure with the following Management Groups:
 Implemented automated guardrails to ensure cost control and compliance:
 - **Allowed Regions**: Restricted to US and Canada to maintain data residency.
 - **VM Size Restrictions**: Blocks expensive VM SKUs to optimize costs.
+- **Centralized Logging**: A Log Analytics Workspace with a **31-day retention** policy for audit compliance.
 
 ## 🛠️ How to Deploy
 Ensure you are authenticated via Azure CLI, then run:
 ```bash
-az deployment tenant create --location EastUS --template-file main.bicep
+az deployment tenant what-if \
+  --location eastus \
+  --template-file main.bicep \
+  --parameters BasicSubscriptionId=$AZURE_SUBSCRIPTION_ID
  ```
 
 ## 🤖 CI/CD & Automation
@@ -29,9 +33,10 @@ Implemented a robust "Quality Gate" using GitHub Actions to ensure infrastructur
 This landing zone utilizes a **Hub-and-Spoke** topology to provide a scalable and secure network foundation.
 
 ### 🛰️ Architecture Details
-* **Hub VNet (`vnet-hub-001`)**: Acts as the central connection point. It includes a dedicated **Azure Bastion** subnet for secure, seamless RDP/SSH access to resources without requiring public IP addresses.
-* **Spoke VNet (`vnet-spoke-001`)**: Designed for isolated workloads. It communicates exclusively with the Hub, ensuring controlled and centralized traffic flow.
-* **Automated Peering**: Connectivity is established via a custom bidirectional peering module. This module uses Bicep `outputs` to dynamically link the networks across different Resource Groups, removing the need for hard-coded resource names.
+* **Centralized Hub**: The `cloudcorp-hub-rg` contains the central connection point.
+* **Azure Bastion**: Hosted within the Hub VNet on a dedicated `AzureBastionSubnet`. 🏰 It provides secure RDP/SSH access to VMs across the entire topology without exposing public IP addresses.
+* **Isolated Spoke**: The `cloudcorp-workload-rg` hosts business applications. The spoke module is designed with `targetScope = 'resourceGroup'` for maximum reusability.
+* **Dynamic Peering**: Connectivity is established via a custom bidirectional peering module. This module uses Bicep `outputs` to dynamically link networks across different Resource Groups, ensuring the Hub and Spoke are fully provisioned before linking. 🔗
 
 ### 🔡 IP Address Management (IPAM)
 | Network | Address Space | Primary Subnet | Purpose |

@@ -23,7 +23,7 @@ resource allowRegions 'Microsoft.Authorization/policyAssignments@2022-06-01' = {
     parameters: {
       listOfAllowedLocations: {
         value: [
-          'canadacentral' // This is the Toronto data center! 🏙️
+          'canadacentral' // This is the Toronto data center
           'eastus'        // Your preferred US region
         ]
       }
