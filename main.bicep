@@ -1,54 +1,20 @@
-targetScope = 'tenant'
+targetScope = 'managementGroup'
 param location string = 'eastus'
 param BasicSubscriptionId string
-param managementGroupId string 
+param managementGroupId string
 
-
-resource rootGroup 'Microsoft.Management/managementGroups@2021-04-01' existing = {
-  name: managementGroupId 
-}
-
-// Creating 3 main groups under rootGroup: Platform, Workloads, and Sandbox
-
-resource platformGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
-  name: 'CloudCorp-Platform'
-  properties: {
-    displayName: 'Platform'
-    details: {
-      parent: {
-        id: rootGroup.id // This links it to the rootGroup resource we defined earlier
-      }
-    }
+// Call the hierarchy as a module
+module hierarchy 'modules/mg-hierarchy.bicep' = {
+  name: 'hierarchy-deploy'
+  scope: tenant() // This module handles the tenant-level resource creation
+  params: {
+    managementGroupId: managementGroupId
   }
 }
 
-resource workloadGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
-  name: 'CloudCorp-Workload'
-  properties: {
-    displayName: 'Workload'
-    details: {
-      parent: {
-        id: rootGroup.id // This links it to the rootGroup resource we defined earlier
-      }
-    }
-  }
-}
-
-resource sandboxGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
-  name: 'CloudCorp-Sandbox'
-  properties: {
-    displayName: 'Sandbox'
-    details: {
-      parent: {
-        id: rootGroup.id // This links it to the rootGroup resource we defined earlier
-      }
-    }
-  }
-}
-
-module orgGovernance './policy.bicep' = {
+module orgGovernance 'modules/policy.bicep' = {
   name: 'org-governance-deployment'
-  scope: rootGroup // This tells the module: "Run your code inside this group"
+  scope: managementGroup(managementGroupId) // This tells the module: "Run your code inside this group"
 }
 
 // Creating hubRG
