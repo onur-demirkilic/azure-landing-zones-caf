@@ -17,10 +17,12 @@ Implemented automated guardrails to ensure cost control and compliance:
 ## 🛠️ How to Deploy
 Ensure you are authenticated via Azure CLI, then run:
 ```bash
-az deployment tenant what-if \
+az deployment mg what-if \
+  --management-group-id $AZURE_MGMT_GROUP_ID \
   --location eastus \
   --template-file main.bicep \
-  --parameters BasicSubscriptionId=$AZURE_SUBSCRIPTION_ID
+  --parameters BasicSubscriptionId=$AZURE_SUBSCRIPTION_ID \
+               managementGroupId=$AZURE_MGMT_GROUP_ID
  ```
 
 ## 🤖 CI/CD & Automation

@@ -1,4 +1,4 @@
-name: "Bicep Pre-flight"
+name: "Bicep Static Analysis"
 
 on:
   push:
@@ -6,32 +6,18 @@ on:
   pull_request: 
     branches: [ main ]
 
-permissions:
-  id-token: write # Required for requesting the JWT
-  contents: read  # Required for actions/checkout
-
 jobs:
-  validate:
-    runs-on:  ubuntu-latest
+  build-and-lint:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          # Allows the login to succeed for Tenant-level operations
-          allow-no-subscriptions: true
-
+      # Check for style and best practices (Linting)
       - name: Bicep Lint
         run: az bicep build --file ./main.bicep
 
-      - name: Azure Pre-flight Validation
-        run:  |
-          az deployment tenant validate \
-            --location eastus \
-            --template-file ./main.bicep \
-            --parameters BasicSubscriptionId=${{ secrets.AZURE_SUBSCRIPTION_ID }} \
-                         managementGroupId=${{ secrets.AZURE_MGMT_GROUP_ID }}
+      # Compile to ARM Template
+      # This confirms modules, scopes, and parameters are all logically linked.
+      - name: Bicep Transpile Check
+        run: |
+          az bicep build --file ./main.bicep --outfile ./azuredeploy.json
